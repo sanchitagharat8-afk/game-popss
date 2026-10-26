@@ -1,0 +1,288 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Puzzle Pop 🌈</title>
+<style>
+:root{--bg1:#6c3cff;--bg2:#ff4fa3;--card:#ffffffed;--ink:#282044}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;font-family:system-ui,sans-serif;color:var(--ink);
+background:linear-gradient(135deg,var(--bg1),var(--bg2),#ffbd59);
+background-size:250% 250%;animation:bg 12s ease infinite;padding:18px}
+@keyframes bg{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+button,select{font:inherit;cursor:pointer;border:0;border-radius:15px;padding:12px 16px;font-weight:800}
+button{transition:transform .15s,filter .15s}
+button:hover{filter:brightness(1.08);transform:translateY(-2px)}
+button:active{transform:scale(.96)}
+.primary{background:linear-gradient(135deg,#ffcf4a,#ff8c42);color:#422044;box-shadow:0 5px 0 #c96835}
+.secondary{background:#eee8ff;color:#5d35c7}
+.app{max-width:850px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:white}
+.logo{font-size:clamp(27px,5vw,42px);font-weight:1000;text-shadow:0 4px 0 #7136a7}
+.pill{background:#ffffff35;border:1px solid #ffffff65;border-radius:30px;padding:9px 13px;color:white;font-weight:800}
+.card{background:var(--card);border:2px solid #ffffffa0;border-radius:26px;padding:22px;margin-top:18px;box-shadow:0 15px 35px #40208030}
+h1,h2,p{margin-top:0}
+.hero{text-align:center;padding:26px 18px}
+.hero h1{font-size:clamp(30px,6vw,49px);margin-bottom:8px}
+.hero p{color:#625778}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stat{background:linear-gradient(145deg,#f2eaff,#fff0f8);border-radius:17px;padding:12px;text-align:center}
+.stat strong{display:block;font-size:25px;color:#7b3fe4}
+.stat small{color:#756987;font-weight:700}
+.board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;max-width:410px;margin:18px auto}
+.tile{aspect-ratio:1;background:linear-gradient(145deg,#ffdf62,#ff9b55);color:#51256f;
+font-size:clamp(24px,6vw,40px);font-weight:1000;border-radius:17px;
+box-shadow:0 5px 0 #dc7549;display:grid;place-items:center;user-select:none}
+.tile:nth-child(4n+2){background:linear-gradient(145deg,#9df7e7,#4ed4c2);box-shadow:0 5px 0 #27a99e}
+.tile:nth-child(4n+3){background:linear-gradient(145deg,#ffc4f1,#ff80c9);box-shadow:0 5px 0 #d85aab}
+.tile:nth-child(4n){background:linear-gradient(145deg,#d6c5ff,#a78bfa);box-shadow:0 5px 0 #8264d7}
+.tile.empty{background:#eee8fa;box-shadow:inset 0 3px 8px #bcb0d4;cursor:default}
+.tile.pop{animation:pop .18s}
+@keyframes pop{50%{transform:scale(1.09) rotate(2deg)}}
+.message{text-align:center;min-height:25px;font-weight:800;color:#7845c9}
+.section-title{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.options{display:flex;gap:8px;flex-wrap:wrap}
+.options button.selected{background:#7238d9;color:white}
+.progress{height:12px;background:#e9defc;border-radius:99px;overflow:hidden;margin:10px 0}
+.progress div{height:100%;width:0;background:linear-gradient(90deg,#4dd9c3,#a06aff,#ff76ba);transition:width .4s}
+footer{text-align:center;color:white;font-size:13px;padding:18px}
+.hidden{display:none!important}
+#confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.conf{position:absolute;top:-20px;width:10px;height:15px;animation:fall 2s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(800deg)}}
+@media(max-width:450px){body{padding:10px}.card{padding:15px}.tile{border-radius:12px}.stats{gap:6px}}
+</style>
+</head>
+<body>
+<div id="confetti"></div>
+<div class="app">
+<header>
+  <div class="logo">🌈 PUZZLE POP!</div>
+  <div class="pill" id="points">⭐ 0 stars</div>
+  <button class="pill" id="soundBtn">🔊 Sound ON</button>
+</header>
+
+<section class="card hero" id="home">
+  <h1>Slide. Solve. <span style="color:#e34eaa">Shine!</span> ✨</h1>
+  <p>A little brain workout, a lot of colorful fun.</p>
+  <div class="controls">
+    <button class="primary" id="playBtn">🎮 PLAY NOW</button>
+    <button class="secondary" id="dailyBtn">📅 Daily Challenge</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><strong id="best">—</strong><small>🏆 Best moves</small></div>
+    <div class="stat"><strong id="streak">0</strong><small>🔥 Day streak</small></div>
+    <div class="stat"><strong id="wins">0</strong><small>🎉 Puzzles won</small></div>
+  </div>
+  <h3>🎨 Pick your vibe</h3>
+  <div class="options" style="justify-content:center" id="themes">
+    <button class="selected" data-theme="candy">🍭 Candy</button>
+    <button data-theme="ocean">🌊 Ocean</button>
+    <button data-theme="sunset">🌅 Sunset</button>
+    <button data-theme="neon">💜 Neon</button>
+  </div>
+  <p style="margin:16px 0 0">Unlock themes by earning stars ⭐</p>
+</section>
+
+<section class="card hidden" id="game">
+  <div class="section-title">
+    <h2 id="modeTitle">🧩 Classic Puzzle</h2>
+    <button class="secondary" id="homeBtn">🏠 Home</button>
+  </div>
+  <div class="options">
+    <button class="selected" data-size="3">3 × 3 Classic</button>
+    <button data-size="4">4 × 4 Expert</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><strong id="moves">0</strong><small>👆 Moves</small></div>
+    <div class="stat"><strong id="timer">00:00</strong><small>⏱️ Time</small></div>
+    <div class="stat"><strong id="target">8</strong><small>🧩 Tiles</small></div>
+  </div>
+  <div class="board" id="board"></div>
+  <div class="message" id="message">Tap a tile next to the empty space!</div>
+  <div class="controls">
+    <button class="primary" id="shuffleBtn">🔀 New Puzzle</button>
+    <button class="secondary" id="hintBtn">💡 Hint</button>
+    <button class="secondary" id="musicBtn">🎵 Music ON</button>
+  </div>
+  <p style="text-align:center;color:#756987;margin:15px 0 0">Tip: use arrow keys on your keyboard, too!</p>
+  <div style="margin-top:18px">⭐ Next reward progress <span id="progressText">0 / 3 wins</span>
+    <div class="progress"><div id="progressBar"></div></div>
+  </div>
+</section>
+<footer>💖 Made for curious minds. Play at your own pace!</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let size=3,tiles=[],moves=0,seconds=0,tick=null,started=false;
+let soundOn=true,musicOn=true,audio=null,osc=null,musicGain=null,musicTimer=null;
+let stars=Number(localStorage.ppStars||0),wins=Number(localStorage.ppWins||0);
+let best=JSON.parse(localStorage.ppBest||'{}');
+let streak=Number(localStorage.ppStreak||0),lastDay=localStorage.ppLastDay||'';
+let dailyMode=false;
+const themes={
+ candy:['#6c3cff','#ff4fa3'],ocean:['#087fbd','#50e3c2'],
+ sunset:['#ff7043','#ffbd59'],neon:['#512da8','#00d4ff']
+};
+function save(){localStorage.ppStars=stars;localStorage.ppWins=wins;
+localStorage.ppBest=JSON.stringify(best);localStorage.ppStreak=streak;localStorage.ppLastDay=lastDay;}
+function refresh(){
+ $('points').textContent='⭐ '+stars+' stars';$('wins').textContent=wins;
+ $('streak').textContent=streak;$('best').textContent=best[size]||'—';
+ $('progressText').textContent=(wins%3)+' / 3 wins';
+ $('progressBar').style.width=(wins%3)/3*100+'%';
+ document.querySelectorAll('[data-theme]').forEach(b=>{
+   let need={candy:0,ocean:3,sunset:6,neon:10}[b.dataset.theme];
+   b.textContent=b.dataset.theme==='candy'?'🍭 Candy':
+   b.dataset.theme==='ocean'?'🌊 Ocean'+(stars<need?' 🔒':''):
+   b.dataset.theme==='sunset'?'🌅 Sunset'+(stars<need?' 🔒':''):
+   '💜 Neon'+(stars<need?' 🔒':'');
+ });
+}
+function audioCtx(){if(!audio)audio=new(window.AudioContext||window.webkitAudioContext)();
+ if(audio.state==='suspended')audio.resume();return audio;}
+function tone(freq=440,dur=.09,type='sine',vol=.06,delay=0){
+ if(!soundOn)return;
+ try{let c=audioCtx(),o=c.createOscillator(),g=c.createGain();
+ o.type=type;o.frequency.setValueAtTime(freq,c.currentTime+delay);
+ g.gain.setValueAtTime(vol,c.currentTime+delay);
+ g.gain.exponentialRampToValueAtTime(.001,c.currentTime+delay+dur);
+ o.connect(g);g.connect(c.destination);o.start(c.currentTime+delay);o.stop(c.currentTime+delay+dur+.02);
+ }catch(e){}
+}
+function sfx(name){
+ if(!soundOn)return;
+ if(name==='move')tone(430,.07,'sine',.045);
+ if(name==='slide'){tone(550,.07,'triangle',.05);tone(720,.08,'sine',.035,0.045);}
+ if(name==='hint') {tone(660,.1,'sine');tone(880,.13,'sine',.05,.12);}
+ if(name==='win'){[523,659,784,1047].forEach((n,i)=>tone(n,.22,'triangle',.065,i*.13));}
+ if(name==='click')tone(320,.05,'square',.025);
+}
+function stopMusic(){if(musicTimer)clearInterval(musicTimer);musicTimer=null;
+ if(osc){try{osc.stop()}catch(e){}osc=null;}musicGain=null;}
+function startMusic(){
+ stopMusic();if(!musicOn||!soundOn)return;
+ try{let c=audioCtx(),notes=[261.6,329.6,392,329.6,293.7,349.2,440,349.2],i=0;
+ musicTimer=setInterval(()=>{if(!musicOn||!soundOn)return;
+ tone(notes[i++%notes.length],.22,'sine',.018);
+ },360);
+ }catch(e){}
+}
+$('soundBtn').onclick=()=>{
+ soundOn=!soundOn;$('soundBtn').textContent=soundOn?'🔊 Sound ON':'🔇 Sound OFF';
+ if(!soundOn)stopMusic();else if(musicOn)startMusic();
+};
+$('musicBtn').onclick=()=>{
+ musicOn=!musicOn;$('musicBtn').textContent=musicOn?'🎵 Music ON':'🎵 Music OFF';
+ if(musicOn&&soundOn)startMusic();else stopMusic();sfx('click');
+};
+function solved(arr){return arr.slice(0,-1).every((v,i)=>v===i+1)&&arr[arr.length-1]===0;}
+function neighbours(i,j){return Math.abs(i-j)===size||Math.floor(i/size)===Math.floor(j/size)&&Math.abs(i-j)===1;}
+function draw(){
+ let board=$('board');board.style.gridTemplateColumns=`repeat(${size},minmax(0,1fr))`;board.innerHTML='';
+ tiles.forEach((v,i)=>{
+  let b=document.createElement('button');b.className='tile'+(v===0?' empty':'');
+  b.textContent=v||'';b.setAttribute('aria-label',v?'Tile '+v:'Empty space');
+  b.onclick=()=>move(i);board.appendChild(b);
+ });
+ $('moves').textContent=moves;$('target').textContent=size*size-1;
+ $('modeTitle').textContent=dailyMode?'📅 Daily Challenge':size===3?'🧩 Classic Puzzle':'🔥 Expert Puzzle';
+ $('best').textContent=best[size]||'—';
+}
+function move(i){
+ let z=tiles.indexOf(0);if(!neighbours(i,z))return;
+ [tiles[i],tiles[z]]=[tiles[z],tiles[i]];moves++;started=true;sfx('slide');
+ if(!tick)tick=setInterval(()=>{seconds++;$('timer').textContent=fmt(seconds)},1000);
+ draw();
+ if(solved(tiles))win();
+}
+function fmt(n){return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0')}
+function stopTimer(){if(tick)clearInterval(tick);tick=null;}
+function shuffle(){
+ stopTimer();seconds=0;moves=0;started=false;$('timer').textContent='00:00';
+ tiles=Array.from({length:size*size},(_,i)=>i+1);tiles[tiles.length-1]=0;
+ // Shuffle by legal moves, guaranteeing a solvable board.
+ let z=tiles.length-1,prev=-1;
+ for(let k=0;k<Math.max(100,size*size*18);k++){
+  let ns=tiles.map((_,i)=>i).filter(i=>neighbours(i,z)&&i!==prev);
+  let next=ns[Math.floor(Math.random()*ns.length)];
+  [tiles[z],tiles[next]]=[tiles[next],tiles[z]];prev=z;z=next;
+ }
+ if(solved(tiles))shuffle();else draw();
+ $('message').textContent='Ready, set, slide! ✨';sfx('click');
+}
+function win(){
+ stopTimer();wins++;stars+=size===4?3:2;
+ let today=new Date().toLocaleDateString('en-CA');
+ if(lastDay!==today){
+  let y=new Date();y.setDate(y.getDate()-1);
+  let yesterday=y.toLocaleDateString('en-CA');
+  streak=lastDay===yesterday?streak+1:1;lastDay=today;
+ }
+ if(!best[size]||moves<best[size])best[size]=moves;
+ save();refresh();sfx('win');confetti();
+ $('message').textContent=`🎉 YOU DID IT! +${size===4?3:2} stars! ${moves} moves in ${fmt(seconds)}.`;
+ if(wins%3===0)$('message').textContent+=' 🌟 Bonus milestone reached!';
+}
+function confetti(){
+ const holder=$('confetti');holder.innerHTML='';
+ for(let i=0;i<100;i++){let e=document.createElement('i');e.className='conf';
+ e.style.left=Math.random()*100+'%';e.style.background=['#ffdf59','#ff5fa2','#50ddc4','#9e7bff','#fff'][i%5];
+ e.style.animationDelay=Math.random()*.8+'s';e.style.transform=`rotate(${Math.random()*180}deg)`;
+ holder.appendChild(e);}
+ setTimeout(()=>holder.innerHTML='',3000);
+}
+function hint(){
+ let z=tiles.indexOf(0),choices=tiles.map((v,i)=>({v,i})).filter(o=>o.v&&neighbours(o.i,z));
+ if(!choices.length)return;
+ let target=choices[Math.floor(Math.random()*choices.length)];
+ $('message').textContent='💡 Try sliding tile '+target.v+' into the empty space!';
+ sfx('hint');
+}
+function start(daily=false){
+ dailyMode=daily;size=3;
+ document.querySelectorAll('[data-size]').forEach(b=>b.classList.toggle('selected',Number(b.dataset.size)===size));
+ $('home').classList.add('hidden');$('game').classList.remove('hidden');
+ shuffle();if(daily){$('message').textContent='📅 Today’s challenge: solve the puzzle!';}
+ if(soundOn&&musicOn)startMusic();
+}
+$('playBtn').onclick=()=>start(false);
+$('dailyBtn').onclick=()=>start(true);
+$('homeBtn').onclick=()=>{stopTimer();stopMusic();$('game').classList.add('hidden');$('home').classList.remove('hidden');};
+$('shuffleBtn').onclick=shuffle;$('hintBtn').onclick=hint;
+document.querySelectorAll('[data-size]').forEach(b=>b.onclick=()=>{
+ size=Number(b.dataset.size);
+ document.querySelectorAll('[data-size]').forEach(x=>x.classList.toggle('selected',x===b));
+ shuffle();refresh();
+});
+document.querySelectorAll('[data-theme]').forEach(b=>b.onclick=()=>{
+ let theme=b.dataset.theme,need={candy:0,ocean:3,sunset:6,neon:10}[theme];
+ if(stars<need){$('message').textContent=`🔒 Earn ${need-stars} more stars to unlock this theme!`;sfx('click');return;}
+ document.documentElement.style.setProperty('--bg1',themes[theme][0]);
+ document.documentElement.style.setProperty('--bg2',themes[theme][1]);
+ document.querySelectorAll('[data-theme]').forEach(x=>x.classList.toggle('selected',x===b));
+ localStorage.ppTheme=theme;sfx('click');
+});
+document.addEventListener('keydown',e=>{
+ if($('game').classList.contains('hidden'))return;
+ let z=tiles.indexOf(0),i=-1;
+ if(e.key==='ArrowLeft'&&z%size<size-1)i=z+1;
+ if(e.key==='ArrowRight'&&z%size>0)i=z-1;
+ if(e.key==='ArrowUp'&&z+size<tiles.length)i=z+size;
+ if(e.key==='ArrowDown'&&z-size>=0)i=z-size;
+ if(i>=0){e.preventDefault();move(i);}
+});
+let savedTheme=localStorage.ppTheme||'candy';
+if(themes[savedTheme]){
+ document.documentElement.style.setProperty('--bg1',themes[savedTheme][0]);
+ document.documentElement.style.setProperty('--bg2',themes[savedTheme][1]);
+ document.querySelectorAll('[data-theme]').forEach(x=>x.classList.toggle('selected',x.dataset.theme===savedTheme));
+}
+refresh();
+</script>
+</body>
+</html>
